@@ -43,8 +43,9 @@ class AddFtSearchToModel < LuckyTask::Task
     puts 
     puts "      column #{@searchable_name} : #{model}::TSVector?  "
     puts "                                                        "
-    puts "  3.- Call the macro method inside the #{model.capitalize}Query class like  " 
-    puts 
+    puts "  3.- Include and call the macro method inside the #{model.capitalize}Query class like  " 
+    puts
+    puts "      include FullTextSearch(#{model.capitalize})       "
     puts "      full_text_search \"#{@searchable_name}\"          "
     puts "                                                        "
     puts "  You have a new query method:                          "
