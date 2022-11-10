@@ -26,7 +26,6 @@ class AddFtSearchToModel < LuckyTask::Task
 
   def run_insert_function_and_trigger
     add_searchable_column
-    
   end
 
   def print_next_steps
@@ -74,13 +73,6 @@ class AddFtSearchToModel < LuckyTask::Task
     end
 
     instructions
-  end
-
-  def deprecated_create_polymorphic_relation
-    AppDatabase.exec "
-      ALTER TABLE pg_search_documents
-      ADD IF NOT EXISTS #{model.downcase}_id bigint;
-    "
   end
 
   def add_searchable_column
