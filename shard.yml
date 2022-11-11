@@ -7,3 +7,8 @@ authors:
 crystal: 1.6.0
 
 license: MIT
+
+dependencies:
+  teeplate:
+    github: luckyframework/teeplate
+    version: ~> 0.8

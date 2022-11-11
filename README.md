@@ -17,13 +17,24 @@ TODO: Write a description here
 ## Usage
 
 ```crystal
-
+in shards.cr
+ - require "lucky_full_text_search"
 in tasks.cr
-require "lucky_full_text_search/tasks/**"
+ - require "lucky_full_text_search/tasks/**"
 
 ```
 
- ### Run generator, example:
+ ###  Add your multi_scope query
+ 1.- Include the library and call the macro
+ ``` 
+   include LuckyFullTextSearch(Post)
+   full_text_search("custom_scope", true, ["title", "description"])
+   # Where first param is the name of the scope
+   # Second is weighted boolean param, for precedense in the columns
+   # Use your new query: 
+   PostQuery.new.custo_scope_search
+  ``` 
+ ### Run generator, example FOR THE new column way:
 
   For a model ```Post```, with title, author and content string columns
 
@@ -48,6 +59,8 @@ Follow the steps provided by the task when it's done.
 
 1. Create the TTSVector alais
 2. Include the library and call the macro
+   fast_full_text_search("desc_auth_w", true, ["title", "description"])
+
 3. Use the new search scope, eg: 
 ```
  PostQuery.new.search_full("Lucky") #=> PostQuery instance

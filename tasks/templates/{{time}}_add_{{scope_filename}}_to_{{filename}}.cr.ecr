@@ -1,0 +1,20 @@
+
+class Add<%= @scope_name.camelcase %>To<%= @base_model %>::V<%= @time %> < Avram::Migrator::Migration::V1
+  #alias TSVector = String
+
+  def migrate
+    execute <<-SQL
+    ALTER TABLE <%= Wordsmith::Inflector.pluralize(@base_model) %>
+      ADD COLUMN IF NOT EXISTS <%= @scope_name %> tsvector GENERATED ALWAYS AS (
+        <%= @columns %>
+      ) STORED;
+    SQL
+  end
+
+  def rollback
+    execute <<-SQL
+    ALTER TABLE <%= Wordsmith::Inflector.pluralize(@base_model) %>
+      DROP COLUMN IF EXISTS <%= @scope_name %>;
+    SQL
+  end
+end

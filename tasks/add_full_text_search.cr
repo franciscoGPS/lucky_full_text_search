@@ -1,4 +1,22 @@
 require "lucky_task"
+require "teeplate"
+
+class GenerateMigrationTemplate < Teeplate::FileTree
+  directory "#{__DIR__}/templates/"
+
+  @base_model : String
+  @scope_name : String
+  @filename   : String
+  @time       : String
+  @columns    : String
+
+  def initialize(@base_model, @scope_name, @searchable_cols : Array(String))
+    @time =  Time.utc.to_s("%G%m%e%H%M%S")
+    @scope_filename = @scope_name.underscore
+    @filename = Wordsmith::Inflector.pluralize(@base_model).underscore
+    @columns = @searchable_cols.join(" || ")
+  end
+end
 
 class AddFtSearchToModel < LuckyTask::Task
 
@@ -17,15 +35,19 @@ class AddFtSearchToModel < LuckyTask::Task
   def call
     @add_weights = false
     @add_weights = true if weighted == "true" || weighted == "weighted"
-    @searchable_name = "" 
-    @searchable_name = scope_name.to_s
+    @searchable_name = scope_name
+    @searchable_name = "" if @searchable_name.nil?
+
 
     run_insert_function_and_trigger
     print_next_steps
+
+    template = GenerateMigrationTemplate.new(model, @searchable_name.not_nil!, append_searchable_columns(columns, @add_weights))
+    template.render "db/migrations", interactive: true, list: true, color: true
   end
 
   def run_insert_function_and_trigger
-    add_searchable_column
+    #add_searchable_column
   end
 
   def print_next_steps
@@ -55,26 +77,6 @@ class AddFtSearchToModel < LuckyTask::Task
     puts "########################################################"
   end
 
-  def iterate_columns
-    columns.each_with_index do |col, index|
-      yield col, index
-    end
-  end
-
-  def append_searchable_columns
-    instructions = [] of String
-    base_instruction = "to_tsvector('english', coalesce( {{col}}, ''))" 
-    base_instruction = "setweight(to_tsvector('english', coalesce( {{col}}, '')), '{{weight}}')" if @add_weights
-
-    iterate_columns do |col, index|
-      instruction = base_instruction.gsub("{{col}}", col)
-      instruction = instruction.gsub("{{weight}}", ('A'..'Z').to_a[index]) if @add_weights
-      instructions << instruction
-    end
-
-    instructions
-  end
-
   def add_searchable_column
     AppDatabase.exec "
       ALTER TABLE #{Wordsmith::Inflector.pluralize(model)}
@@ -84,7 +86,7 @@ class AddFtSearchToModel < LuckyTask::Task
     AppDatabase.exec "
       ALTER TABLE #{Wordsmith::Inflector.pluralize(model)}
       ADD COLUMN IF NOT EXISTS #{@searchable_name} tsvector GENERATED ALWAYS AS (
-        #{append_searchable_columns.join(" || ")}
+        #{append_searchable_columns(columns).join(" || ")}
       ) STORED;
     "
 
