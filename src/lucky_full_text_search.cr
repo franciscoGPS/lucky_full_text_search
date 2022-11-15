@@ -11,7 +11,7 @@ module LuckyFullTextSearch(T)
 
   macro fast_full_text_search(name)
 
-    def {{name.id}}_search(query, limit = 24)
+    def {{name.id}}(query, limit = 24)
       sql = <<-SQL
         SELECT #{table_name}.*
         FROM #{table_name}
