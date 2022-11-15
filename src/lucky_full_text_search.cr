@@ -20,12 +20,12 @@ module LuckyFullTextSearch(T)
           (
             ts_rank(
             (#{table_name}.{{name.id}}),
-            (websearch_to_tsquery('english', $1)), 0
+            (to_tsvector('english', $1)), 0
             )::decimal
           ) AS rank
           FROM #{table_name}
           WHERE (
-            ((#{table_name}.{{name.id}}) @@ (websearch_to_tsquery('english', $1)))
+            ((#{table_name}.{{name.id}}) @@ (to_tsvector('english', $1)))
           )
         ) pg_search ON #{table_name}.id = pg_search.pg_search_id
         ORDER BY pg_search.rank DESC
@@ -56,12 +56,12 @@ module LuckyFullTextSearch(T)
           (
             ts_rank(
             ( {{ column_sattements.id }} ),
-            (websearch_to_tsquery('english', $1)), 0
+            (to_tsvector('english', $1)), 0
             )::decimal
           ) AS rank
           FROM #{table_name}
           WHERE (
-            ( ( {{ column_sattements.id }} ) @@ (websearch_to_tsquery('english', $1)))
+            ( ( {{ column_sattements.id }} ) @@ (to_tsvector('english', $1)))
           )
         ) pg_search ON #{table_name}.id = pg_search.pg_search_id
         ORDER BY pg_search.rank DESC
