@@ -47,7 +47,7 @@ module LuckyFullTextSearch(T)
   macro full_text_search(name, weighted = false, *columns)
     {% column_sattements = run("./helpers/command_helpers.cr", columns.join(","), weighted) %}
 
-    def {{name.id}}_search(query, limit = 24)
+    def {{name.id}}(query, limit = 24)
       sql = <<-SQL
         SELECT #{table_name}.*
         FROM #{table_name}
