@@ -16,7 +16,7 @@ module LuckyFullTextSearch(T)
         SELECT #{table_name}.*
         FROM #{table_name}
         INNER JOIN (
-          SELECT #{table_name}.id AS pg_search_id,
+          SELECT DISTINCT #{table_name}.id AS pg_search_id,
           (
             ts_rank(
             (#{table_name}.{{name.id}}),
@@ -27,6 +27,7 @@ module LuckyFullTextSearch(T)
           WHERE (
             ((#{table_name}.{{name.id}}) @@ (to_tsquery('english', $1)))
           )
+          LIMIT $2
         ) pg_search ON #{table_name}.id = pg_search.pg_search_id
         ORDER BY pg_search.rank DESC
         LIMIT $2
@@ -52,7 +53,7 @@ module LuckyFullTextSearch(T)
         SELECT #{table_name}.*
         FROM #{table_name}
         INNER JOIN (
-          SELECT #{table_name}.id AS pg_search_id,
+          SELECT DISTINCT #{table_name}.id AS pg_search_id,
           (
             ts_rank(
             ( {{ column_sattements.id }} ),
@@ -63,6 +64,7 @@ module LuckyFullTextSearch(T)
           WHERE (
             ( ( {{ column_sattements.id }} ) @@ (to_tsquery('english', $1)))
           )
+          limit $2
         ) pg_search ON #{table_name}.id = pg_search.pg_search_id
         ORDER BY pg_search.rank DESC
         LIMIT $2
