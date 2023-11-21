@@ -92,7 +92,6 @@ module LuckyFullTextSearch(T)
               
               ) @@ (to_tsquery('english', $1)))
           )
-          limit $2
         ) pg_search ON #{table_name}.id = pg_search.pg_search_id
         ORDER BY
         {% if !col_statements.id.empty? && !column_statements.id.empty? %}
