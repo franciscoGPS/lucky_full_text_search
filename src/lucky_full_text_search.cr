@@ -47,7 +47,7 @@ module LuckyFullTextSearch(T)
 
   macro full_text_search(name, weighted = false, text_columns = [] of String, array_columns = [] of String)
     {% column_statements = run("./helpers/command_helpers.cr", text_columns.join(","), weighted) %}
-    {% col_statements = run("./helpers/array_command_helpers.cr", array_columns.join(",")) %}
+    {% arr_cols = run("./helpers/array_command_helpers.cr", array_columns.join(",")) %}
     def {{name.id}}(query, ands = "", custom_sort = "", limit = 24)
       sql = <<-SQL
         SELECT #{table_name}.*
@@ -63,13 +63,13 @@ module LuckyFullTextSearch(T)
             )::decimal
           ) AS rank
           {% end %}
-          {% unless col_statements.id.empty? %}
+          {% unless arr_cols.id.empty? %}
           {% unless column_statements.id.empty? %}
             ,
           {% end %}
           (
             ts_rank(
-            ( {{ col_statements.id }} ),
+            ( {{ arr_cols.id }} ),
             (to_tsquery('english', $1))
             )::decimal
           ) AS array_search_rank
@@ -81,12 +81,12 @@ module LuckyFullTextSearch(T)
               {% unless column_statements.id.empty? %}
                 {{ column_statements.id }} 
               {% end %}
-              {% unless col_statements.id.empty? %}
+              {% unless arr_cols.id.empty? %}
                 {% unless column_statements.id.empty? %}
                   ||
                 {% end %}
 
-                {{ col_statements.id }} 
+                {{ arr_cols.id }} 
   
               {% end %}
               
@@ -95,8 +95,8 @@ module LuckyFullTextSearch(T)
         ) pg_search ON #{table_name}.id = pg_search.pg_search_id
         !wheres!
         ORDER BY
-        {% if !col_statements.id.empty? && !column_statements.id.empty? %}
-          array_search_rank DESC, rank DESC
+        {% if !arr_cols.id.empty? && !column_statements.id.empty? %}
+          rank DESC, array_search_rank DESC
         {% elsif !column_statements.id.empty? %}
           rank DESC
         {% else %}
@@ -108,6 +108,7 @@ module LuckyFullTextSearch(T)
       result = [] of T
       begin
         sql = sql.gsub("!wheres!", ands).gsub("!custom_sort!", custom_sort)
+        pp sql
         result = database.query_all(sql, query, limit, as: T )
       rescue exception
         result = [] of T
